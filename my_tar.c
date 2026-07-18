@@ -32,7 +32,7 @@ int main(int argc, char const *argv[])
 {
     Arguments args = parse_arguments(argc, argv);
     //./my_tar -cf archive.tar file1 file2
-    //debug print:::::::::::::::::::::::::
+    //debug print:::::::::::::::::::::::::DELETE LATER
     printf("Archive Name: %s \n",args.archiveName);
     printf("Mode: %s \n",args.mode);
     printf("Number of files: %d\n",args.numberOfFiles);
@@ -44,9 +44,14 @@ int main(int argc, char const *argv[])
 Arguments parse_arguments(int argc, char const *argv[]){
     Arguments args;
     args.numberOfFiles=0;
-    args.mode;
-    args.archiveName;
+    args.mode = NULL;
+    args.archiveName = NULL;
     args.indexFiles = 0;
+    if(argc==1){
+        printf("erorr: no arguments present, please enter valid arguments");
+        exit(1);
+    }
+
     for(int i = 0;i<argc;i++){
         if(argv[i][0]=='-'){
             for(int y = 1;argv[i][y]!='\0';y++){
@@ -56,13 +61,18 @@ Arguments parse_arguments(int argc, char const *argv[]){
                     args.mode = "CREATE";
                     break;
                 case 'f':
+                if(argv[i+1]==NULL){
+                    printf("erorr: no archive name provided");
+                    exit(2);
+                }
                     args.indexFiles= i+2;
                     args.numberOfFiles = argc - args.indexFiles;
                     args.archiveName = argv[i+1];
                     break;
                 
                 default:
-                printf("mode was not recognized");
+                printf("option was not recognized");
+                exit(3);
                     break;
                 }
             }
