@@ -1,7 +1,6 @@
 # my_tar 
 
-**Hello VIKTOR!
-
+**Hello VIKTOR!**/
 <img src="https://media1.tenor.com/m/dj2wXFsd6ukAAAAd/hello-hi.gif" width="25%" height="25%"/>
 
 
