@@ -1,6 +1,6 @@
 # my_tar 
 
-![Hello VIKTOR](https://tenor.com/en-GB/view/hello-hi-hy-hey-gif-8520159980767013609)
+![Hello VIKTOR](https://tenor.com/en_GB/view/hello_hi_hy_hey_gif_8520159980767013609)
 
 
 is a command to manipulate tape archive. The first option to tar is a mode indicator from the following list:
