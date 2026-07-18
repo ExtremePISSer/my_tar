@@ -1,6 +1,6 @@
 # my_tar 
 
-![Hello VIKTOR](https://media1.tenor.com/m/dj2wXFsd6ukAAAAd/hello-hi.gif)
+Hello VIKTOR!
 <img src="https://media1.tenor.com/m/dj2wXFsd6ukAAAAd/hello-hi.gif" width="25%" height="25%"/>
 
 
