@@ -1,5 +1,10 @@
 # my_tar 
-is a command to manipulate tape archive. The first option to tar is a mode indicator from the following list:
+
+**Hello VIKTOR!**\
+<img src="https://media1.tenor.com/m/dj2wXFsd6ukAAAAd/hello-hi.gif" width="25%" height="25%"/>
+
+
+Tar is a command to manipulate tape archive. The first option to tar is a mode indicator from the following list:
 
 
 -c Create a new archive containing the specified items.
@@ -26,3 +31,14 @@ The tar utility returns 0 on success, and >0 if an error occurs.
 
 # Hints
 https://www.gnu.org/software/tar/manual/html_node/Standard.html
+
+
+> [!IMPORTANT]
+> This project is still in development
+
+> [!WARNING]
+> dont do drugs(do code)
+
+> [!CAUTION]
+> some things may not appear as they are, dont believe your eyes
+> <img src="https://media1.tenor.com/m/nO8QxT9B29kAAAAd/wtf-what-the-fuck.gif" width="30%" height="30%"/>
