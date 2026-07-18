@@ -31,3 +31,13 @@ The tar utility returns 0 on success, and >0 if an error occurs.
 
 # Hints
 https://www.gnu.org/software/tar/manual/html_node/Standard.html
+
+
+> [!IMPORTANT]
+> Thsi project is still in development
+
+> [!WARNING]
+> dont do drugs, do code
+
+> [!CAUTION]
+> <img src="https://media1.tenor.com/m/nO8QxT9B29kAAAAd/wtf-what-the-fuck.gif" width="30%" height="30%"/>
