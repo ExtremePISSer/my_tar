@@ -21,7 +21,7 @@ The specification also says:
 -r and -u require -f.*/
 
 typedef struct Arguments{
-    const char* mode;
+    const char* mode; //this will late probably become integer for simplicity(1=Create,2=somethingElse..) 
     const char* archiveName;
     int numberOfFiles;
     int indexFiles;
