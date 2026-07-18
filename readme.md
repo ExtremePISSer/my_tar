@@ -1,7 +1,6 @@
 # my_tar 
 
- <img src="https://media3.giphy.com/media/aUovxH8Vf9qDu/giphy.gif
-"/>
+![Hello VIKTOR](https://tenor.com/en-GB/view/hello-hi-hy-hey-gif-8520159980767013609)
 
 
 is a command to manipulate tape archive. The first option to tar is a mode indicator from the following list:
