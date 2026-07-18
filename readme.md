@@ -1,7 +1,7 @@
 # my_tar 
 
 ![Hello VIKTOR](https://media1.tenor.com/m/dj2wXFsd6ukAAAAd/hello-hi.gif)
-<img src="https://media1.tenor.com/m/dj2wXFsd6ukAAAAd/hello-hi.gif" width="50%" height="50%"/>
+<img src="https://media1.tenor.com/m/dj2wXFsd6ukAAAAd/hello-hi.gif" width="25%" height="25%"/>
 
 
 is a command to manipulate tape archive. The first option to tar is a mode indicator from the following list:
