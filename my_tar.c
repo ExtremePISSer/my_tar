@@ -50,7 +50,9 @@ typedef struct posix_header{    /*byte offset*/
 
 Arguments parse_arguments(int argc, char const *argv[]);
 int create_archive(Arguments args);
-int create_header(const char* filename, int archiveFd);
+int create_header(const char* filename, posix_header *header);
+int write_header(int archiveFd, posix_header *header);
+int write_file_contents(int archiveFd, const char* filename);
 
 
 int main(int argc, char const *argv[])
@@ -62,9 +64,22 @@ int main(int argc, char const *argv[])
     //printf("Mode: %s \n",args.mode);
     //printf("Number of files: %d\n",args.numberOfFiles);
     int archiveFd = create_archive(args);
-
+    if(archiveFd == -1){
+        exit(1);
+    }
+    posix_header header = {0}; //Initialize every byte of the struct to zero
     //for loop for files:
-    create_header("for_testing.c", archiveFd);  //THIS IS TEMPORARY code, later will loop trough filenames
+      //THIS IS TEMPORARY code, later will loop trough filenames
+    if((create_header("for_testing.c", &header))==-1){
+        exit(2);
+    }
+    if((write_header(archiveFd, &header))==-1){
+        exit(3);
+    }
+    
+    write_file_contents(archiveFd, "filename");
+    close(archiveFd);
+
     return 0;
 }
 
@@ -129,16 +144,37 @@ int create_archive(Arguments args){
     }
     return fd;
 }
-int create_header(const char * filename, int archiveFd){
-    posix_header header = {0}; //Initialize every byte of the struct to zero
+int create_header(const char * filename, posix_header *header){
     struct stat sb;
     int statInt;
     statInt = stat(filename,&sb);
     if(statInt==-1){
         return -1;
     }
-    strcpy(header.name,filename);
-    sprintf(header.mode,"%o",sb.st_mode);
-    printf("mode = %s\n", header.mode);
+    strcpy(header->name,filename);
+    sprintf(header->mode,"%o",sb.st_mode);
+    printf("mode = %s\n", header->mode);
+    return 0;
+}
+int write_header(int archiveFd, posix_header *header){
+    return write(archiveFd, header, sizeof(posix_header));
+}
+int write_file_contents(int archiveFd, const char* filename){
+    char buffer[512];
+    int fd = open(filename,O_RDONLY);
+    if(fd==-1){
+        return -1;
+    }
+    int bytesRead;
+    int bytesWritten=0;
+    while((bytesRead = read(fd, buffer, sizeof(buffer))) > 0){
+        write(archiveFd, buffer, bytesRead);
+            bytesWritten = bytesRead;
+    }
+    close(fd);
+    char padding[512]={0};
+    if(bytesWritten!=0 && bytesWritten < 512){
+        write(archiveFd,padding,512-bytesWritten);
+    }
     return 0;
 }
