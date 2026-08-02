@@ -10,7 +10,7 @@
 //THIS PROJECT NEEDS TO SUBMITTED AS MAKEFILE!!!!
 //DONT FORGET ABOUT README!
 //gcc my_tar.c -o my_tar
-//./my_tar
+//./my_tar -c -f archive.tar file1.txt file2.txt
 
 typedef struct Arguments{
     const char* mode; //this will late probably become integer for simplicity(1=Create,2=somethingElse..) 
@@ -44,6 +44,8 @@ int create_archive(Arguments args);
 int create_header(const char* filename, posix_header *header);
 int write_header(int archiveFd, posix_header *header);
 int write_file_contents(int archiveFd, const char* filename);
+void calculate_checksum(posix_header *header);
+int write_end_blocks(int archiveFd);
 
 
 int main(int argc, char const *argv[])
@@ -62,18 +64,20 @@ int main(int argc, char const *argv[])
     for(int f = 0; f<args.numberOfFiles;f++){
         posix_header header = {0}; //Initialize every byte of the struct to zero
         if((create_header(argv[args.indexFiles+f], &header))==-1){
-        exit(2);
+            exit(2);
         }
         if((write_header(archiveFd, &header))==-1){
-        exit(3);
+            exit(3);
         }
         if((write_file_contents(archiveFd, argv[args.indexFiles+f]))==-1){
             exit(4);
         }
     }
-    
+    if((write_end_blocks(archiveFd)) == -1){
+        exit(5);
+    }
     close(archiveFd);
-
+    printf("%zu\n", sizeof(posix_header));
     return 0;
 }
 
@@ -148,7 +152,16 @@ int create_header(const char * filename, posix_header *header){
     //not sure if these are allowed, we may have to create our own variations of helper functions strcpy and sprintf
     strcpy(header->name,filename);
     sprintf(header->mode,"%o",sb.st_mode);
-    printf("mode = %s\n", header->mode);
+    sprintf(header->size, "%o",sb.st_size);
+    sprintf(header->mtime, "%o",sb.st_mtime);
+    sprintf(header->uid, "%o",sb.st_uid);
+    sprintf(header->gid, "%o",sb.st_gid);
+    strcpy(header->magic, "ustar");
+    header->version[0] = '0';
+    header->version[1] = '0';
+    header->typeflag = '0';
+    calculate_checksum(header);
+
     return 0;
 }
 int write_header(int archiveFd, posix_header *header){
@@ -170,6 +183,28 @@ int write_file_contents(int archiveFd, const char* filename){
     char padding[512]={0};
     if(bytesWritten!=0 && bytesWritten < 512){
         write(archiveFd,padding,512-bytesWritten);
+    }
+    return 0;
+}
+void calculate_checksum(posix_header *header){
+    for (int i = 0; i < 8; i++) {
+        header->chksum[i] = ' ';
+    }
+    int sum = 0;
+    
+    unsigned char *p = (unsigned char *)header;
+    for (int i = 0; i < sizeof(posix_header); i++) {
+    sum += p[i];
+    }
+    sprintf(header->chksum,"%o",sum);
+}
+int write_end_blocks(int archiveFd){
+    char zero[512] = {0};
+    if((write(archiveFd,zero,512)) != 512){
+        return -1;
+    }
+    if((write(archiveFd,zero,512)) != 512){
+        return -1;
     }
     return 0;
 }
