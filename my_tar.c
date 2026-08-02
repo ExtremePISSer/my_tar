@@ -12,15 +12,6 @@
 //gcc my_tar.c -o my_tar
 //./my_tar
 
-/*Your program must support:
--c Create archive
--r Append files
--u Update newer files
--t List contents
--x Extract
-The specification also says:
--r and -u require -f.*/
-
 typedef struct Arguments{
     const char* mode; //this will late probably become integer for simplicity(1=Create,2=somethingElse..) 
     const char* archiveName;
@@ -67,17 +58,20 @@ int main(int argc, char const *argv[])
     if(archiveFd == -1){
         exit(1);
     }
-    posix_header header = {0}; //Initialize every byte of the struct to zero
     //for loop for files:
-      //THIS IS TEMPORARY code, later will loop trough filenames
-    if((create_header("for_testing.c", &header))==-1){
+    for(int f = 0; f<args.numberOfFiles;f++){
+        posix_header header = {0}; //Initialize every byte of the struct to zero
+        if((create_header(argv[args.indexFiles+f], &header))==-1){
         exit(2);
-    }
-    if((write_header(archiveFd, &header))==-1){
+        }
+        if((write_header(archiveFd, &header))==-1){
         exit(3);
+        }
+        if((write_file_contents(archiveFd, argv[args.indexFiles+f]))==-1){
+            exit(4);
+        }
     }
     
-    write_file_contents(archiveFd, "filename");
     close(archiveFd);
 
     return 0;
@@ -151,6 +145,7 @@ int create_header(const char * filename, posix_header *header){
     if(statInt==-1){
         return -1;
     }
+    //not sure if these are allowed, we may have to create our own variations of helper functions strcpy and sprintf
     strcpy(header->name,filename);
     sprintf(header->mode,"%o",sb.st_mode);
     printf("mode = %s\n", header->mode);
