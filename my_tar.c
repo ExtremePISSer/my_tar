@@ -89,7 +89,7 @@ Arguments parse_arguments(int argc, char const *argv[]){
                     printf("Extract to disk from the archive. If a file with the same name appears more than once in the archive, each copy will be extracted, with later copies overwriting (replacing) earlier copies.\n");
                     break;
                 case 't':
-                    printf("-> List archive contents to stdout\n");
+                    printf(" -> List archive contents to stdout\n");
                 break;
                 case 'c':
                     args.mode = "CREATE";
