@@ -46,6 +46,9 @@ int write_header(int archiveFd, posix_header *header);
 int write_file_contents(int archiveFd, const char* filename);
 void calculate_checksum(posix_header *header);
 int write_end_blocks(int archiveFd);
+//HIII!
+char *my_strcpy(char *dest, const char *src);
+//int my_strlen(const char *string); For the future
 
 
 int main(int argc, char const *argv[])
@@ -150,13 +153,13 @@ int create_header(const char * filename, posix_header *header){
         return -1;
     }
     //not sure if these are allowed, we may have to create our own variations of helper functions strcpy and sprintf
-    strcpy(header->name,filename);
+    my_strcpy(header->name,filename);
     sprintf(header->mode,"%o",sb.st_mode);
     sprintf(header->size, "%o",sb.st_size);
     sprintf(header->mtime, "%o",sb.st_mtime);
     sprintf(header->uid, "%o",sb.st_uid);
     sprintf(header->gid, "%o",sb.st_gid);
-    strcpy(header->magic, "ustar");
+    my_strcpy(header->magic, "ustar");
     header->version[0] = '0';
     header->version[1] = '0';
     header->typeflag = '0';
@@ -208,3 +211,28 @@ int write_end_blocks(int archiveFd){
     }
     return 0;
 }
+
+char *my_strcpy(char *dest, const char *src) {
+    char *start = dest;
+    
+    while(*src) {
+        *dest = *src;
+        dest++;
+        src++;
+    }
+    *dest = '\0';
+    
+    return start;
+}
+/*
+int my_strlen(const char *string) {
+    int result = 0;
+
+    while(*string) {
+        result++;
+        string++;
+    }
+    
+    return result
+}
+*/
