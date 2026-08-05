@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <unistd.h>
 //https://www.gnu.org/software/tar/manual/html_node/Standard.html
 
 //THIS PROJECT NEEDS TO SUBMITTED AS MAKEFILE!!!!
@@ -49,6 +50,7 @@ int write_end_blocks(int archiveFd);
 //HIII!
 char *my_strcpy(char *dest, const char *src);
 //int my_strlen(const char *string); For the future
+void int_to_octal(char *dest, unsigned long value);
 
 
 int main(int argc, char const *argv[])
@@ -154,11 +156,11 @@ int create_header(const char * filename, posix_header *header){
     }
     //not sure if these are allowed, we may have to create our own variations of helper functions strcpy and sprintf
     my_strcpy(header->name,filename);
-    sprintf(header->mode,"%o",sb.st_mode);
-    sprintf(header->size, "%o",sb.st_size);
-    sprintf(header->mtime, "%o",sb.st_mtime);
-    sprintf(header->uid, "%o",sb.st_uid);
-    sprintf(header->gid, "%o",sb.st_gid);
+    int_to_octal(header->mode, sb.st_mode);
+    int_to_octal(header->size, sb.st_size);
+    int_to_octal(header->mtime, sb.st_mtime);
+    int_to_octal(header->uid, sb.st_uid);
+    int_to_octal(header->gid, sb.st_gid);
     my_strcpy(header->magic, "ustar");
     header->version[0] = '0';
     header->version[1] = '0';
@@ -199,7 +201,7 @@ void calculate_checksum(posix_header *header){
     for (int i = 0; i < sizeof(posix_header); i++) {
     sum += p[i];
     }
-    sprintf(header->chksum,"%o",sum);
+    int_to_octal(header->chksum, sum);
 }
 int write_end_blocks(int archiveFd){
     char zero[512] = {0};
@@ -236,3 +238,29 @@ int my_strlen(const char *string) {
     return result
 }
 */
+
+void int_to_octal(char *dest, unsigned long value) {
+    char temp[32] = {0};
+    int i = 0;
+    int j = 0;
+    
+    if(value == 0) {
+        dest[0] = '0';
+        dest[1] = '\0';
+        return;
+    }
+    
+    while(value > 0) {
+        temp[i] = value % 8 + '0';
+        value /= 8;
+        i++;
+    }
+    
+    while(i > 0) {
+        dest[j] = temp[i - 1];
+        i--;
+        j++;
+    }
+    dest[j] = '\0';
+}
+
