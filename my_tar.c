@@ -10,6 +10,7 @@
 
 //THIS PROJECT NEEDS TO SUBMITTED AS MAKEFILE!!!!
 //DONT FORGET ABOUT README!
+//format-hex archive.rar
 //gcc my_tar.c -o my_tar
 //./my_tar -c -f archive.tar file1.txt file2.txt
 
@@ -38,6 +39,8 @@ typedef struct posix_header{    /*byte offset*/
   char devminor[8];             /* 337 */
   char prefix[155];             /* 345 */
                                 /* 500 */
+  char pad[12];                 //padding to 512
+
 }posix_header;
 
 Arguments parse_arguments(int argc, char const *argv[]);
@@ -50,7 +53,7 @@ int write_end_blocks(int archiveFd);
 //HIII!
 char *my_strcpy(char *dest, const char *src);
 //int my_strlen(const char *string); For the future
-void int_to_octal(char *dest, unsigned long value);
+void int_to_octal(char *dest, unsigned long value, int width);
 
 
 int main(int argc, char const *argv[])
@@ -156,11 +159,11 @@ int create_header(const char * filename, posix_header *header){
     }
     //not sure if these are allowed, we may have to create our own variations of helper functions strcpy and sprintf
     my_strcpy(header->name,filename);
-    int_to_octal(header->mode, sb.st_mode);
-    int_to_octal(header->size, sb.st_size);
-    int_to_octal(header->mtime, sb.st_mtime);
-    int_to_octal(header->uid, sb.st_uid);
-    int_to_octal(header->gid, sb.st_gid);
+    int_to_octal(header->mode, sb.st_mode,8);
+    int_to_octal(header->size, sb.st_size,12);
+    int_to_octal(header->mtime, sb.st_mtime,12);
+    int_to_octal(header->uid, sb.st_uid,8);
+    int_to_octal(header->gid, sb.st_gid,8);
     my_strcpy(header->magic, "ustar");
     header->version[0] = '0';
     header->version[1] = '0';
@@ -201,7 +204,8 @@ void calculate_checksum(posix_header *header){
     for (int i = 0; i < sizeof(posix_header); i++) {
     sum += p[i];
     }
-    int_to_octal(header->chksum, sum);
+    int_to_octal(header->chksum, sum,7);
+    header->chksum[7]=' ';
 }
 int write_end_blocks(int archiveFd){
     char zero[512] = {0};
@@ -239,14 +243,17 @@ int my_strlen(const char *string) {
 }
 */
 
-void int_to_octal(char *dest, unsigned long value) {
+void int_to_octal(char *dest, unsigned long value, int width) {
     char temp[32] = {0};
     int i = 0;
     int j = 0;
     
     if(value == 0) {
-        dest[0] = '0';
-        dest[1] = '\0';
+        for (int w = 0; w < width - 2; w++) {
+        dest[w] = '0';
+        }
+        dest[width - 2] = '0';
+        dest[width - 1] = '\0';
         return;
     }
     
@@ -255,12 +262,17 @@ void int_to_octal(char *dest, unsigned long value) {
         value /= 8;
         i++;
     }
-    
+    int padding = width - 1 - i;
+    for (int w = 0; w < width - 1 - i; w++) {
+        dest[w] = '0';
+    }
+
     while(i > 0) {
-        dest[j] = temp[i - 1];
+        dest[j+padding] = temp[i - 1];
         i--;
         j++;
     }
-    dest[j] = '\0';
+    
+    dest[j+padding] = '\0';
 }
 
