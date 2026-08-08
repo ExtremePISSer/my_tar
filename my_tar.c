@@ -97,9 +97,7 @@ int main(int argc, char const *argv[])
         exit(1);
     }
 
-    char * test = "000001750";
     //printf("%zu\n", sizeof(posix_header));
-    printf("INT TO OCTAL: %d",octal_to_int(test));
     return 0;
 }
 
