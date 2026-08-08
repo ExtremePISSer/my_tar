@@ -15,7 +15,7 @@
 //./my_tar -c -f archive.tar file1.txt file2.txt
 
 typedef struct Arguments{
-    const char* mode; //this will late probably become integer for simplicity(1=Create,2=somethingElse..) 
+    const char* mode; //this will late probably become integer for simplicity(1=Create,2=somethingElse..)
     const char* archiveName;
     int numberOfFiles;
     int indexFiles;
@@ -51,9 +51,11 @@ int write_file_contents(int archiveFd, const char* filename);
 void calculate_checksum(posix_header *header);
 int write_end_blocks(int archiveFd);
 //HIII!
+int list_archive();
 char *my_strcpy(char *dest, const char *src);
 //int my_strlen(const char *string); For the future
 void int_to_octal(char *dest, unsigned long value, int width);
+int my_strcmp(const char *a, const char *b);
 
 
 int main(int argc, char const *argv[])
@@ -64,27 +66,37 @@ int main(int argc, char const *argv[])
     //printf("Archive Name: %s \n",args.archiveName);
     //printf("Mode: %s \n",args.mode);
     //printf("Number of files: %d\n",args.numberOfFiles);
-    int archiveFd = create_archive(args);
+    
+    int archiveFd;
+    
+    if(my_strcmp(args.mode, "CREATE") == 0) {
+        archiveFd = create_archive(args);
+        //for loop for files:
+        for(int f = 0; f<args.numberOfFiles;f++){
+            posix_header header = {0}; //Initialize every byte of the struct to zero
+            if((create_header(argv[args.indexFiles+f], &header))==-1){
+                exit(2);
+            }
+            if((write_header(archiveFd, &header))==-1){
+                exit(3);
+            }
+            if((write_file_contents(archiveFd, argv[args.indexFiles+f]))==-1){
+                exit(4);
+            }
+        }
+        if((write_end_blocks(archiveFd)) == -1){
+            exit(5);
+        }
+        close(archiveFd);
+    } else if (my_strcmp(args.mode, "LIST") == 0) {
+        archiveFd = list_archive();
+    }
+    
     if(archiveFd == -1){
         exit(1);
     }
-    //for loop for files:
-    for(int f = 0; f<args.numberOfFiles;f++){
-        posix_header header = {0}; //Initialize every byte of the struct to zero
-        if((create_header(argv[args.indexFiles+f], &header))==-1){
-            exit(2);
-        }
-        if((write_header(archiveFd, &header))==-1){
-            exit(3);
-        }
-        if((write_file_contents(archiveFd, argv[args.indexFiles+f]))==-1){
-            exit(4);
-        }
-    }
-    if((write_end_blocks(archiveFd)) == -1){
-        exit(5);
-    }
-    close(archiveFd);
+
+    
     printf("%zu\n", sizeof(posix_header));
     return 0;
 }
@@ -111,7 +123,8 @@ Arguments parse_arguments(int argc, char const *argv[]){
                     break;
                 case 't':
                     printf(" -> List archive contents to stdout\n");
-                break;
+                    args.mode = "LIST";
+                    break;
                 case 'c':
                     args.mode = "CREATE";
                     break;
@@ -218,6 +231,11 @@ int write_end_blocks(int archiveFd){
     return 0;
 }
 
+int list_archive() {
+    printf("list_archive works!");
+    return 0;
+}
+
 char *my_strcpy(char *dest, const char *src) {
     char *start = dest;
     
@@ -276,3 +294,13 @@ void int_to_octal(char *dest, unsigned long value, int width) {
     dest[j+padding] = '\0';
 }
 
+int my_strcmp(const char *a, const char *b) {
+    
+    while(*a && *b && *a == *b) {
+        a++;
+        b++;
+    }
+    if(*a == '\0' && *b == '\0') return 0;
+    
+    return 1;
+}
