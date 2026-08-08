@@ -56,6 +56,7 @@ char *my_strcpy(char *dest, const char *src);
 //int my_strlen(const char *string); For the future
 void int_to_octal(char *dest, unsigned long value, int width);
 int my_strcmp(const char *a, const char *b);
+unsigned octal_to_int(char * dest);
 
 
 int main(int argc, char const *argv[])
@@ -96,8 +97,9 @@ int main(int argc, char const *argv[])
         exit(1);
     }
 
-    
-    printf("%zu\n", sizeof(posix_header));
+    char * test = "000001750";
+    //printf("%zu\n", sizeof(posix_header));
+    printf("INT TO OCTAL: %d",octal_to_int(test));
     return 0;
 }
 
@@ -170,7 +172,6 @@ int create_header(const char * filename, posix_header *header){
     if(statInt==-1){
         return -1;
     }
-    //not sure if these are allowed, we may have to create our own variations of helper functions strcpy and sprintf
     my_strcpy(header->name,filename);
     int_to_octal(header->mode, sb.st_mode,8);
     int_to_octal(header->size, sb.st_size,12);
@@ -292,6 +293,16 @@ void int_to_octal(char *dest, unsigned long value, int width) {
     }
     
     dest[j+padding] = '\0';
+}
+
+unsigned octal_to_int(char* dest){
+    unsigned long result = 0;
+    int index = 0;
+    while(dest[index]!='\0'){
+        result = result*8 + (dest[index] - '0'); 
+        index++;
+    }
+    return result;
 }
 
 int my_strcmp(const char *a, const char *b) {
