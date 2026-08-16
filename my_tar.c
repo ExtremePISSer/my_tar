@@ -51,7 +51,7 @@ int write_file_contents(int archiveFd, const char* filename);
 void calculate_checksum(posix_header *header);
 int write_end_blocks(int archiveFd);
 //HIII!
-int list_archive();
+int list_archive(const char *archiveName);
 char *my_strcpy(char *dest, const char *src);
 //int my_strlen(const char *string); For the future
 void int_to_octal(char *dest, unsigned long value, int width);
@@ -90,7 +90,7 @@ int main(int argc, char const *argv[])
         }
         close(archiveFd);
     } else if (my_strcmp(args.mode, "LIST") == 0) {
-        archiveFd = list_archive();
+        archiveFd = list_archive(args.archiveName);
     }
     
     if(archiveFd == -1){
@@ -230,8 +230,36 @@ int write_end_blocks(int archiveFd){
     return 0;
 }
 
-int list_archive() {
-    printf("list_archive works!");
+int list_archive(const char *archiveName) {
+    
+    int fd = open(archiveName, O_RDONLY);
+    
+    if(fd == -1){
+        exit(1);
+    }
+    
+    while(1) {
+        
+        posix_header header;
+        
+        int bytesRead = read(fd, &header, sizeof(header));
+        
+        if(bytesRead == 0) break;
+        
+        if(header.name[0] == '\0') break;
+        
+        printf("%s\n", header.name);
+        
+        int size = octal_to_int(header.size);
+        
+        size = 512 * ((size + 511) / 512);
+        
+        lseek(fd, size, SEEK_CUR);
+        
+    }
+    
+    
+    close(fd);
     return 0;
 }
 
@@ -297,7 +325,7 @@ unsigned octal_to_int(char* dest){
     unsigned long result = 0;
     int index = 0;
     while(dest[index]!='\0'){
-        result = result*8 + (dest[index] - '0'); 
+        result = result*8 + (dest[index] - '0');
         index++;
     }
     return result;
