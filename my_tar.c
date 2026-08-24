@@ -57,6 +57,7 @@ char *my_strcpy(char *dest, const char *src);
 void int_to_octal(char *dest, unsigned long value, int width);
 int my_strcmp(const char *a, const char *b);
 unsigned octal_to_int(char * dest);
+int extract_archive(char * archiveName);
 
 
 int main(int argc, char const *argv[])
@@ -91,6 +92,8 @@ int main(int argc, char const *argv[])
         close(archiveFd);
     } else if (my_strcmp(args.mode, "LIST") == 0) {
         archiveFd = list_archive(args.archiveName);
+    } else if (my_strcmp(args.mode, "EXTRACT") == 0){
+        archiveFd = extract_archive(args.archiveName);
     }
     
     if(archiveFd == -1){
@@ -119,7 +122,7 @@ Arguments parse_arguments(int argc, char const *argv[]){
                 switch (argv[i][y])
                 {
                 case 'x':
-                    printf("Extract to disk from the archive. If a file with the same name appears more than once in the archive, each copy will be extracted, with later copies overwriting (replacing) earlier copies.\n");
+                    args.mode = "EXTRACT";
                     break;
                 case 't':
                     printf(" -> List archive contents to stdout\n");
@@ -340,4 +343,20 @@ int my_strcmp(const char *a, const char *b) {
     if(*a == '\0' && *b == '\0') return 0;
     
     return 1;
+}
+int extract_archive(char * archiveName){
+    //will return 0 success, -1 failure
+    /*archive
+   ↓
+read header → header variable
+   ↓
+get name + size
+   ↓
+create file
+   ↓
+read file data → write to disk
+   ↓
+skip padding
+   ↓
+read next header*/
 }
