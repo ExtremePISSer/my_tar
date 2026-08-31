@@ -346,17 +346,97 @@ int my_strcmp(const char *a, const char *b) {
 }
 int extract_archive(char * archiveName){
     //will return 0 success, -1 failure
-    /*archive
-   ↓
-read header → header variable
-   ↓
-get name + size
-   ↓
-create file
-   ↓
-read file data → write to disk
-   ↓
-skip padding
-   ↓
-read next header*/
+    int fd = open(archiveName, O_RDONLY);
+    
+    if(fd == -1){
+        exit(1);
+    }
+    
+    while (1) {
+                
+        /*
+         archive
+         ↓
+         read header → header variable
+         */
+        posix_header header;
+
+        int bytesRead = read(fd, &header, sizeof(header));
+        if (bytesRead == 0) {
+            break;
+        }
+
+        if (bytesRead != sizeof(header)) {
+            close(fd);
+            return -1;
+        }
+
+        if (header.name[0] == '\0') {
+            break;
+        }
+         /*
+         ↓
+         get name + size
+         */
+        unsigned fileSize = octal_to_int(header.size);
+        
+        printf("%s\n", header.name);
+        
+        printf("size: %u\n", fileSize);
+         /*
+         ↓
+         create file
+         */
+        unsigned mode = octal_to_int(header.mode);
+        
+        int outputFd = open(header.name, O_WRONLY | O_CREAT | O_TRUNC, mode);
+                             
+        if (outputFd == -1) {
+            close(fd);
+            return -1;
+        }
+         /*
+         ↓
+         read file data → write to disk
+         */
+        char buffer[512];
+        unsigned remaining = fileSize;
+        
+        while (remaining > 0) {
+            int bytesToRead;
+            if (remaining >= 512) {
+                bytesToRead = 512;
+            } else {
+                bytesToRead = remaining;
+            }
+            
+            int bytesRead = read(fd, buffer, bytesToRead);
+            
+            if (bytesRead <= 0) {
+                close(outputFd);
+                close(fd);
+                return -1;
+            }
+            
+            write(outputFd, buffer, bytesRead);
+            remaining -= bytesRead;
+        }
+
+         /*
+         ↓
+         skip padding
+         */
+        unsigned padding = (512 - (fileSize % 512)) % 512;
+        lseek(fd, padding, SEEK_CUR);
+         /*
+         ↓
+         read next header
+         */
+        
+        
+    }
+    
+    close(fd);
+    return 0;
+    
 }
