@@ -50,14 +50,15 @@ int write_header(int archiveFd, posix_header *header);
 int write_file_contents(int archiveFd, const char* filename);
 void calculate_checksum(posix_header *header);
 int write_end_blocks(int archiveFd);
-//HIII!
+//HIII! :D :D Hello
 int list_archive(const char *archiveName);
 char *my_strcpy(char *dest, const char *src);
 //int my_strlen(const char *string); For the future
 void int_to_octal(char *dest, unsigned long value, int width);
 int my_strcmp(const char *a, const char *b);
 unsigned octal_to_int(char * dest);
-int extract_archive(char * archiveName);
+int extract_archive(const char * archiveName);
+int append_to_archive(const char * archiveName);
 
 
 int main(int argc, char const *argv[])
@@ -94,6 +95,25 @@ int main(int argc, char const *argv[])
         archiveFd = list_archive(args.archiveName);
     } else if (my_strcmp(args.mode, "EXTRACT") == 0){
         archiveFd = extract_archive(args.archiveName);
+    }else if (my_strcmp(args.mode, "APPEND")==0){
+        archiveFd = append_to_archive(args.archiveName);
+
+        for(int f = 0; f<args.numberOfFiles;f++){
+            posix_header header = {0}; //Initialize every byte of the struct to zero
+            if((create_header(argv[args.indexFiles+f], &header))==-1){
+                exit(2);
+            }
+            if((write_header(archiveFd, &header))==-1){
+                exit(3);
+            }
+            if((write_file_contents(archiveFd, argv[args.indexFiles+f]))==-1){
+                exit(4);
+            }
+        }
+        if((write_end_blocks(archiveFd)) == -1){
+            exit(5);
+        }
+        close(archiveFd);
     }
     
     if(archiveFd == -1){
@@ -125,14 +145,13 @@ Arguments parse_arguments(int argc, char const *argv[]){
                     args.mode = "EXTRACT";
                     break;
                 case 't':
-                    printf(" -> List archive contents to stdout\n");
                     args.mode = "LIST";
                     break;
                 case 'c':
                     args.mode = "CREATE";
                     break;
                 case 'r':
-                    printf("Like -c, but new entries are appended to the archive. The -f option is required.\n");
+                    args.mode = "APPEND";
                     break;
                 case 'u':
                     printf("Like -r, but new entries are added only if they have a modification date newer than the corresponding entry in the archive. The -f option is required.\n");
@@ -344,7 +363,7 @@ int my_strcmp(const char *a, const char *b) {
     
     return 1;
 }
-int extract_archive(char * archiveName){
+int extract_archive(const char * archiveName){
     //will return 0 success, -1 failure
     int fd = open(archiveName, O_RDONLY);
     
@@ -439,4 +458,24 @@ int extract_archive(char * archiveName){
     close(fd);
     return 0;
     
+}
+int append_to_archive(const char * archiveName){
+    int fd = open(archiveName, O_RDWR);
+    if(fd == -1){
+        exit(1);
+    }
+    posix_header header;
+    while(1){
+
+        int bytesRead = read(fd,&header,sizeof(header));
+                if(header.name[0] == '\0'){
+                lseek(fd,-512,SEEK_CUR);
+                break;
+                }
+
+        int size = octal_to_int(header.size);
+        unsigned padding = (512 - (size % 512)) % 512;
+        lseek(fd,size+padding,SEEK_CUR);
+    }
+    return fd;    
 }
