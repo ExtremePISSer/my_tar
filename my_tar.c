@@ -145,7 +145,7 @@ Arguments parse_arguments(int argc, char const *argv[]){
     args.archiveName = NULL;
     args.indexFiles = 0;
     if(argc==1){
-        printf("erorr: no arguments present, please enter valid arguments\n");
+        //printf("erorr: no arguments present, please enter valid arguments\n");
         exit(1);
     }
 
@@ -171,7 +171,7 @@ Arguments parse_arguments(int argc, char const *argv[]){
                     break;
                 case 'f':
                 if(argv[i+1]==NULL){
-                    printf("erorr: no archive name provided\n");
+                    //printf("erorr: no archive name provided\n");
                     exit(2);
                 }
                     args.indexFiles= i+2;
@@ -180,7 +180,7 @@ Arguments parse_arguments(int argc, char const *argv[]){
                     break;
                 
                 default:
-                printf("option was not recognized\n");
+                //printf("option was not recognized\n");
                 exit(3);
                     break;
                 }
@@ -283,7 +283,7 @@ int list_archive(const char *archiveName) {
         
         if(header.name[0] == '\0') break;
         
-        printf("%s\n", header.name);
+        //printf("%s\n", header.name);
         
         int size = octal_to_int(header.size);
         
@@ -412,9 +412,9 @@ int extract_archive(const char * archiveName){
          */
         unsigned fileSize = octal_to_int(header.size);
         
-        printf("%s\n", header.name);
+        //printf("%s\n", header.name);
         
-        printf("size: %u\n", fileSize);
+        //printf("size: %u\n", fileSize);
          /*
          ↓
          create file
@@ -560,6 +560,7 @@ int copy_file_contents(int oldFd, int newFd, unsigned size){
         write(newFd,buffer,bytesRead);
         remaining-=bytesRead;
     }
+    return 0;
 }
 int copy_archive(const char *oldArchiveName, const char *newArchiveName){
     int oldFd = open(oldArchiveName, O_RDONLY);
