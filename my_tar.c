@@ -15,7 +15,7 @@
 //./my_tar -c -f archive.tar file1.txt file2.txt
 
 typedef struct Arguments{
-    const char* mode; //this will late probably become integer for simplicity(1=Create,2=somethingElse..)
+    const char* mode;
     const char* archiveName;
     int numberOfFiles;
     int indexFiles;
@@ -59,7 +59,9 @@ int my_strcmp(const char *a, const char *b);
 unsigned octal_to_int(char * dest);
 int extract_archive(const char * archiveName);
 int append_to_archive(const char * archiveName);
-
+int update_archive(const char * archiveName, const char * filename);
+int copy_file_contents(int oldFd, int newFd, unsigned size);
+int copy_archive(const char *oldArchiveName, const char *newArchiveName);
 
 int main(int argc, char const *argv[])
 {
@@ -114,7 +116,18 @@ int main(int argc, char const *argv[])
             exit(5);
         }
         close(archiveFd);
+    }else if(my_strcmp(args.mode, "UPDATE") == 0){
+    for(int f = 0; f < args.numberOfFiles; f++){
+        archiveFd = update_archive(
+            args.archiveName,
+            argv[args.indexFiles + f]
+        );
+
+        if(archiveFd == -1){
+            exit(1);
+        }
     }
+}
     
     if(archiveFd == -1){
         exit(1);
@@ -154,7 +167,7 @@ Arguments parse_arguments(int argc, char const *argv[]){
                     args.mode = "APPEND";
                     break;
                 case 'u':
-                    printf("Like -r, but new entries are added only if they have a modification date newer than the corresponding entry in the archive. The -f option is required.\n");
+                    args.mode = "UPDATE";
                     break;
                 case 'f':
                 if(argv[i+1]==NULL){
@@ -478,4 +491,86 @@ int append_to_archive(const char * archiveName){
         lseek(fd,size+padding,SEEK_CUR);
     }
     return fd;    
+}
+int update_archive(const char * archiveName, const char * filename){
+    int fd = open(archiveName, O_RDONLY);
+    int newFd = open("temp.tar", O_WRONLY | O_CREAT | O_TRUNC);
+    
+    if(fd == -1){
+        exit(1);
+    }
+    posix_header header;
+    struct stat sb;
+    int statInt;
+    statInt = stat(filename,&sb);
+    char zeroBuffer[512] = {0};
+    
+    while(1){
+        int bytesRead = read(fd,&header,sizeof(header));
+        if(bytesRead==0){
+            break;
+        }
+        if(my_strcmp(header.name,filename)==0){
+            if(sb.st_mtime>octal_to_int(header.mtime)){
+                int oldSize = octal_to_int(header.size);
+                create_header(filename, &header);
+                write_header(newFd, &header);
+                write_file_contents(newFd, filename);
+                unsigned padding = (512 - (oldSize % 512)) % 512;
+                lseek(fd,oldSize+padding,SEEK_CUR);
+            }else{
+                write_header(newFd, &header);
+                copy_file_contents(fd, newFd, octal_to_int(header.size));
+                int size = octal_to_int(header.size);
+        unsigned padding = (512 - (size % 512)) % 512;
+        write(newFd, zeroBuffer, padding);
+        lseek(fd, padding, SEEK_CUR);
+            }
+        }else{
+        write_header(newFd, &header);
+        copy_file_contents(fd, newFd, octal_to_int(header.size));
+        int size = octal_to_int(header.size);
+        unsigned padding = (512 - (size % 512)) % 512;
+        write(newFd, zeroBuffer, padding);
+        lseek(fd, padding, SEEK_CUR);
+        }
+        
+
+    }
+    write_end_blocks(newFd);
+    close(fd);
+    close(newFd);
+    unlink(archiveName);
+    copy_archive("temp.tar", archiveName);
+    unlink("temp.tar");
+    return 0;
+}
+int copy_file_contents(int oldFd, int newFd, unsigned size){
+    int remaining = size;
+    char buffer[512];
+    int bytesToRead;
+
+    while(remaining>0){
+        if(remaining>512){
+            bytesToRead = 512;
+        }else{
+            bytesToRead = remaining;
+        }
+        int bytesRead = read(oldFd,buffer,bytesToRead);
+        write(newFd,buffer,bytesRead);
+        remaining-=bytesRead;
+    }
+}
+int copy_archive(const char *oldArchiveName, const char *newArchiveName){
+    int oldFd = open(oldArchiveName, O_RDONLY);
+    int newFd = open(newArchiveName, O_WRONLY | O_CREAT | O_TRUNC);
+    char buffer[512];
+    int bytesRead = read(oldFd,buffer,512);
+    while(bytesRead>0){
+        write(newFd,buffer,bytesRead);
+        bytesRead = read(oldFd,buffer,512);
+    }
+    close(oldFd);
+    close(newFd);
+    return 0;
 }
