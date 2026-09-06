@@ -53,7 +53,7 @@ int write_end_blocks(int archiveFd);
 //HIII! :D :D Hello
 int list_archive(const char *archiveName);
 char *my_strcpy(char *dest, const char *src);
-//int my_strlen(const char *string); For the future
+int my_strlen(const char *string);
 void int_to_octal(char *dest, unsigned long value, int width);
 int my_strcmp(const char *a, const char *b);
 unsigned octal_to_int(char * dest);
@@ -203,6 +203,9 @@ int create_header(const char * filename, posix_header *header){
     int statInt;
     statInt = stat(filename,&sb);
     if(statInt==-1){
+        write(2, "my_tar: ", 8);
+        write(2, filename, my_strlen(filename));
+        write(2, ": Cannot stat: No such file or directory\n", 43);
         return -1;
     }
     my_strcpy(header->name,filename);
@@ -242,13 +245,13 @@ int write_file_contents(int archiveFd, const char* filename){
     return 0;
 }
 void calculate_checksum(posix_header *header){
-    for (int i = 0; i < 8; i++) {
+    for (unsigned int i = 0; i < 8; i++) {
         header->chksum[i] = ' ';
     }
     int sum = 0;
     
     unsigned char *p = (unsigned char *)header;
-    for (int i = 0; i < sizeof(posix_header); i++) {
+    for (int unsigned i = 0; i < sizeof(posix_header); i++) {
     sum += p[i];
     }
     int_to_octal(header->chksum, sum,7);
@@ -283,7 +286,7 @@ int list_archive(const char *archiveName) {
         
         if(header.name[0] == '\0') break;
         
-        //printf("%s\n", header.name);
+        printf("%s\n", header.name);
         
         int size = octal_to_int(header.size);
         
@@ -310,7 +313,7 @@ char *my_strcpy(char *dest, const char *src) {
     
     return start;
 }
-/*
+
 int my_strlen(const char *string) {
     int result = 0;
 
@@ -319,9 +322,8 @@ int my_strlen(const char *string) {
         string++;
     }
     
-    return result
+    return result;
 }
-*/
 
 void int_to_octal(char *dest, unsigned long value, int width) {
     char temp[32] = {0};
@@ -480,7 +482,7 @@ int append_to_archive(const char * archiveName){
     posix_header header;
     while(1){
 
-        int bytesRead = read(fd,&header,sizeof(header));
+        read(fd,&header,sizeof(header));
                 if(header.name[0] == '\0'){
                 lseek(fd,-512,SEEK_CUR);
                 break;
@@ -501,8 +503,7 @@ int update_archive(const char * archiveName, const char * filename){
     }
     posix_header header;
     struct stat sb;
-    int statInt;
-    statInt = stat(filename,&sb);
+    stat(filename,&sb);
     char zeroBuffer[512] = {0};
     
     while(1){
